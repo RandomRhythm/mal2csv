@@ -1,0 +1,3 @@
+[submodule "Web_Log_Deobfuscate"]
+	path = Web_Log_Deobfuscate
+	url = https://github.com/RandomRhythm/Web_Log_Deobfuscate
