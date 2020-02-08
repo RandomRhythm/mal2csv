@@ -10,11 +10,15 @@ The mal2csv script is recommended to ensure all web server logs can be successfu
 The script may need to be modified to ensure proper operation with the logs you are trying to format. This is because there are many ways in which web servers log access. For example, some logs may not provide a referrer or user agent field while others do. Edit the config section of the script per the notes for each variable.
 
 Options:
+
   -h, --help            show this help message and exit
+
   -i INPUTPATH, --input=INPUTPATH
                         Path to folder containing logs to be formatted
+
   -o OUTPUTPATH, --output=OUTPUTPATH
                         Formatted log output folder path
 
 Example:
+
 mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\output.csv
