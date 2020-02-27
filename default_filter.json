@@ -288,7 +288,7 @@
       },
       {
         "id":"23",
-        "rule":"(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\w{2,}\\s*=\\s*\\d+[^&\\w]\\w+)|(?:\\]\\s*\\(\\s*\\w+)",
+        "rule":"(?:\\.\\s*\\w+\\W*=)|(?:\\W\\s*(?:location|document)\\s*\\W[^({[;]+[({[;])|(?:\\(\\w+\\?[:\\w]+\\))|(?:\\]\\s*\\(\\s*\\w+)",
         "description":"Detects JavaScript location\/document property access and window access obfuscation",
         "tags":{
           "tag":[
