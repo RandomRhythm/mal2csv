@@ -1,0 +1,62 @@
+{
+  "filters":{
+    "filter":[
+           {
+        "id":"79",
+        "rule":"(?:script>[^<]*alert\\()",
+        "description":"Detects HTML injection test",
+        "tags":{
+          "tag":[
+            "injection"
+          ]
+        },
+        "impact":"3"
+      },
+      {
+        "id":"80",
+        "rule":"(?:^[^\\(]*\\))",
+        "description":"Detects parentheses mismatch common with SQL injection",
+        "tags":{
+          "tag":[
+            "injection"
+          ]
+        },
+        "impact":"3"
+      },
+      {
+        "id":"81",
+        "rule":"(?:('|`))",
+        "description":"Detects single quote",
+        "tags":{
+          "tag":[
+            "injection"
+          ]
+        },
+        "impact":"4"
+      },
+      {
+        "id":"82",
+        
+        "rule":"(?:(\\s+(and|or)\\s+|;|=|]-|\\+)(|not\\s+)(\\(|exp|json_keys|extractvalue|updatexml|row|select|\\d+=\\d+\\W))",
+        "description":"Detects logic manipulation",
+        "tags":{
+          "tag":[
+            "injection"
+          ]
+        },
+        "impact":"4"
+      },
+      {
+        "id":"83",
+        "rule":"waitfor delay",
+        "description":"Detects WAITFOR DELAY",
+        "tags":{
+          "tag":[
+            "injection"
+          ]
+        },
+        "impact":"2"
+      }
+    ]
+  }
+}

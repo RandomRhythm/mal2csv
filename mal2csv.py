@@ -28,13 +28,15 @@ boolPreprocess = False #preprocessing may be required. See if you get "Error on 
 boolSingleFile = True #Create one output file or many
 boolExpectDefaultFormat = True #added to improve accuracy of Common/Combined Log Format. Set to False for IIS logs
 boolOutputInteresting = True #This can be useful for finding potential suspicious anomalies
-boolDeobfuscate = True #Use Web_Log_Deobfuscate to decode fields and improve readability
-boolOutputSuspicious = True #If deobfuscating entries then output suspicious entries
-boolphpids = True #Run log entries against phpids rules
+boolDeobfuscate = False #Use Web_Log_Deobfuscate to decode fields and improve readability
+boolOutputSuspicious = False #If deobfuscating entries then output suspicious entries
+boolphpids = False #Run log entries against phpids rules
+boolOutputIDS = False #Output PHPIDS rule match information
 boolOutputUnformatted = False #This is only useful when debugging
 #end config section
 boolSuspiciousLineFound = False #variable used to track when a line contains encoded data
-phpidSignatures = {}#phpids signatures
+phpidSignatures = {} #phpids signatures
+customSignatures = {} #IDS signatures for deobfuscated log entries
 
 def build_cli_parser():
     parser = OptionParser(usage="%prog [options]", description="Format malformed access logs to CSV")
@@ -42,9 +44,19 @@ def build_cli_parser():
                       help="Path to folder containing logs to be formatted")
     parser.add_option("-o", "--output", action="store", default=None, dest="OutputPath",
                       help="Formatted log output folder path")
+    parser.add_option("-d", "--deobfuscate", action="store_true", default=False, dest="boolDeobfuscate",
+                      help="True or False value to deobfuscate log entries for output")
+    parser.add_option("-l", "--loginteresting", action="store_true", default=False, dest="boolOutputSuspicious",
+                      help="True or False value if interesting deobfuscated entries should be logged")
+    parser.add_option("-p", "--phpids", action="store_true", default=False, dest="boolphpids",
+                      help="True or False value if PHPIDS rule matches should be logged")
+    parser.add_option("-r", "--logrules", action="store_true", default=False, dest="boolOutputIDS",
+                      help="True or False value if PHPIDS rule matches should be logged")
+    parser.add_option("-f", "--formatlogging", action="store_true", default=False, dest="boolOutputInteresting",
+                      help="True or False value if suspicious formatting should be logged")
     return parser
 
-def phpIDS (strMatchCheck):
+def phpIDS (strMatchCheck, strIDSOutput):
     global phpidSignatures
     if phpidSignatures == {}:
         with open('default_filter.json') as json_file:
@@ -55,7 +67,25 @@ def phpIDS (strMatchCheck):
             #print('rule: ' + filter['rule'])
             #print('description: ' + filter['description'])
             #print('')
+            if boolOutputIDS == True:
+                outputIDS = filter['id'] + "|" + filter['description'] + "|" + strMatchCheck
+                with io.open(strIDSOutput + ".IDS", "a", encoding="utf-8") as fP:#Unformatted output that eluded a final quote
+                    fP.write("\"" + outputIDS.replace("|", "\",\"") + "\"" + "\n")
             return True
+
+def customIDS (strMatchCheck, strIDSOutput):
+    global customSignatures
+    if customSignatures == {}:
+        with open('custom_filter.json') as json_file:
+            customSignatures = json.load(json_file)
+    for filter in customSignatures['filters']['filter']:
+        if re.search( filter['rule'], strMatchCheck.lower()):
+            if boolOutputIDS == True:
+                outputIDS = filter['id'] + "|" + filter['description'] + "|" + strMatchCheck
+                with io.open(strIDSOutput + ".IDS", "a", encoding="utf-8") as fP:#Unformatted output that eluded a final quote
+                    fP.write("\"" + outputIDS.replace("|", "\",\"") + "\"" + "\n")
+            return True
+    print(strMatchCheck)
 
 def appendQuote(strRow):
     if right(strRow, 1) != '"':
@@ -182,12 +212,14 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                         boolEscapeChar = False
 
                         if boolphpids == True and boolSuspiciousLineFound != True:
-                            boolSuspiciousLineFound = phpIDS(column)
+                            boolSuspiciousLineFound = phpIDS(column,strOutPath)
                             
                         saniColumn = str.replace(column, "'","") # remove quote chars
                         if boolDeobfuscate == True: #perform decoding
                             saniColumn = deobfuscateEncoding(saniColumn)
-                            saniColumn = str.replace(saniColumn, quotecharacter,"").replace("\n", "").replace("\rz", "")
+                            if column != saniColumn and boolphpids == True and boolSuspiciousLineFound != True:
+                                boolSuspiciousLineFound = customIDS(saniColumn.lower(),strOutPath)
+                            saniColumn = str.replace(saniColumn, quotecharacter,"").replace("\n", "").replace("\rz", "") #remove format characters
 
                         if  'HTTP/' in saniColumn:
                             boolRequestEnding = True
@@ -286,26 +318,37 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
 parser = build_cli_parser()
 opts, args = parser.parse_args(sys.argv[1:])
 if opts.InputPath:
-        strInputPath = opts.InputPath
-        print (strInputPath)
+    strInputPath = opts.InputPath
+    print (strInputPath)
 if opts.OutputPath:
-        strOutputPath = opts.OutputPath
-        print (strOutputPath)
+    strOutputPath = opts.OutputPath
+    print (strOutputPath)
 if (not strInputPath and not strInputFilePath) or not strOutputPath:
-        print ("Missing required parameter")
-        sys.exit(-1)
-        
+    print ("Missing required parameter")
+    sys.exit(-1)
+if opts.boolDeobfuscate:
+    boolDeobfuscate = opts.boolDeobfuscate
+if opts.boolOutputSuspicious:
+    boolOutputSuspicious = opts.boolOutputSuspicious
+if opts.boolphpids:
+    boolphpids = opts.boolphpids
+if opts.boolOutputInteresting:
+    boolOutputInteresting = opts.boolOutputInteresting
+if opts.boolOutputIDS:
+    boolOutputIDS = opts.boolOutputIDS
+
+
 if strInputFilePath == "":
-        if os.path.isfile(strInputPath):#check if a file path was provided instead of a folder
-                strInputFilePath = strInputPath #use file instead of folder
-                strInputPath = ""
+    if os.path.isfile(strInputPath):#check if a file path was provided instead of a folder
+            strInputFilePath = strInputPath #use file instead of folder
+            strInputPath = ""
         
 if os.path.isdir(strInputPath):
     for file in os.listdir(strInputPath):
         fileProcess(os.path.join(strInputPath, file), columnCount, file, strOutputPath)
 else:
-        fileName = os.path.basename(strInputFilePath)
-        fileProcess(strInputFilePath, columnCount,fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
+    fileName = os.path.basename(strInputFilePath)
+    fileProcess(strInputFilePath, columnCount,fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
 
 
 print("Completed!")

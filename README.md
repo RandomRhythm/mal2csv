@@ -19,6 +19,22 @@ Options:
   -o OUTPUTPATH, --output=OUTPUTPATH
                         Formatted log output folder path
 
+  -d, --deobfuscate     True or False value to deobfuscate log entries for
+                        output
+
+  -l, --loginteresting  True or False value if interesting deobfuscated
+                        entries should be logged
+
+  -p, --phpids          True or False value if PHPIDS rule matches should be
+                        logged
+
+  -r, --logrules        True or False value if PHPIDS rule matches should be
+                        logged
+
+  -f, --formatlogging   True or False value if suspicious formatting should be
+                        logged
+
+
 Example:
 
-mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\output.csv
+mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\outputfile
