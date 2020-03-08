@@ -27,7 +27,7 @@ columnCount = 10 #set to zero to have it dynamically identify the number of colu
 boolPreprocess = False #preprocessing may be required. See if you get "Error on Row: " message and if so set to True.
 boolSingleFile = True #Create one output file or many
 boolExpectDefaultFormat = True #added to improve accuracy of Common/Combined Log Format. Set to False for IIS logs
-boolOutputInteresting = True #This can be useful for finding potential suspicious anomalies
+boolOutputInteresting = False #This can be useful for finding potential suspicious anomalies
 boolDeobfuscate = False #Use Web_Log_Deobfuscate to decode fields and improve readability
 boolOutputSuspicious = False #If deobfuscating entries then output suspicious entries
 boolphpids = False #Run log entries against phpids rules
@@ -85,7 +85,7 @@ def customIDS (strMatchCheck, strIDSOutput):
                 with io.open(strIDSOutput + ".IDS", "a", encoding="utf-8") as fP:#Unformatted output that eluded a final quote
                     fP.write("\"" + outputIDS.replace("|", "\",\"") + "\"" + "\n")
             return True
-    print(strMatchCheck)
+    #print(strMatchCheck)
 
 def appendQuote(strRow):
     if right(strRow, 1) != '"':
