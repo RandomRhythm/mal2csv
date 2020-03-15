@@ -56,7 +56,7 @@ def build_cli_parser():
                       help="True or False value if suspicious formatting should be logged")
     return parser
 
-def phpIDS (strMatchCheck, strIDSOutput):
+def phpIDS (strMatchCheck, idsFileHandle):
     global phpidSignatures
     if phpidSignatures == {}:
         with open('default_filter.json') as json_file:
@@ -69,11 +69,10 @@ def phpIDS (strMatchCheck, strIDSOutput):
             #print('')
             if boolOutputIDS == True:
                 outputIDS = filter['id'] + "|" + filter['description'] + "|" + strMatchCheck
-                with io.open(strIDSOutput + ".IDS", "a", encoding="utf-8") as fP:#Unformatted output that eluded a final quote
-                    fP.write("\"" + outputIDS.replace("|", "\",\"") + "\"" + "\n")
+                logIDS(idsFileHandle, outputIDS)
             return True
 
-def customIDS (strMatchCheck, strIDSOutput):
+def customIDS (strMatchCheck, idsFileHandle):
     global customSignatures
     if customSignatures == {}:
         with open('custom_filter.json') as json_file:
@@ -82,10 +81,12 @@ def customIDS (strMatchCheck, strIDSOutput):
         if re.search( filter['rule'], strMatchCheck.lower()):
             if boolOutputIDS == True:
                 outputIDS = filter['id'] + "|" + filter['description'] + "|" + strMatchCheck
-                with io.open(strIDSOutput + ".IDS", "a", encoding="utf-8") as fP:#Unformatted output that eluded a final quote
-                    fP.write("\"" + outputIDS.replace("|", "\",\"") + "\"" + "\n")
+                logIDS(idsFileHandle, outputIDS)
             return True
     #print(strMatchCheck)
+
+def logIDS(fP, logline):
+    fP.write("\"" + logline.replace("|", "\",\"") + "\"" + "\n")
 
 def appendQuote(strRow):
     if right(strRow, 1) != '"':
@@ -161,6 +162,11 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
     else:
         strOutPath = strOutPath + strFileName + ".Formatted"
     
+    if boolphpids == True and boolOutputIDS == True:
+        fP = io.open(strOutPath + ".IDS", "a", encoding="utf-8") #open file handle for logging IDS matches
+    if boolphpids == True or boolOutputSuspicious == True or boolOutputInteresting == True:#open file handle for interesting log output
+        fi = open(strOutPath + ".interesting","a", encoding="utf-8") #suspicious log entry output
+    
     with open(strInputFpath, "rt") as csvfile:
         with io.open(strOutPath , "a", encoding="utf-8") as f:
             queuedRows = []
@@ -212,14 +218,15 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                         boolEscapeChar = False
 
                         if boolphpids == True and boolSuspiciousLineFound != True:
-                            boolSuspiciousLineFound = phpIDS(column,strOutPath)
+                            boolSuspiciousLineFound = phpIDS(column, fP)
                             
-                        saniColumn = str.replace(column, "'","") # remove quote chars
+                        #saniColumn = str.replace(column, "'","") # remove quote chars
+                        saniColumn = column
                         if boolDeobfuscate == True: #perform decoding
                             saniColumn = deobfuscateEncoding(saniColumn)
-                            if column != saniColumn and boolphpids == True and boolSuspiciousLineFound != True:
-                                boolSuspiciousLineFound = customIDS(saniColumn.lower(),strOutPath)
                             saniColumn = str.replace(saniColumn, quotecharacter,"").replace("\n", "").replace("\rz", "") #remove format characters
+                        if boolphpids == True and boolSuspiciousLineFound != True:
+                            boolSuspiciousLineFound = customIDS(saniColumn.lower(),fP)
 
                         if  'HTTP/' in saniColumn:
                             boolRequestEnding = True
@@ -309,11 +316,13 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                     f.write(outputRow + "\n")
                     if boolSuspiciousLineFound == True:
                         boolSuspiciousLineFound = False
-                        with open(strOutPath + ".interesting","a", encoding="utf-8") as fi: #write suspicious log entry
-                            fi.write(outputRow + "\n")
+                        fi.write(outputRow + "\n")
     if os.path.isfile(strInputFilePath +".tmp"):
         os.remove(strInputFilePath +".tmp")     
-
+    if boolphpids == True and boolOutputIDS == True:
+        fP.close() #close file handle for IDS log output
+    if boolphpids == True or boolOutputSuspicious == True or boolOutputInteresting == True:#open file handle for interesting log output
+        fi.close() #close file handle for interesting log output
 
 parser = build_cli_parser()
 opts, args = parser.parse_args(sys.argv[1:])
