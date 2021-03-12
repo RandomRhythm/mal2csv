@@ -25,6 +25,7 @@ inputEncoding = "utf-8" #set to "" to use system default
 strLineBeginingRE = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" #regex to ensure each line starts with valid value. Set to "" to disable. default regex is for common log format and should be disabled or modfied for other formats
 quotecharacter = '\"'
 strdateFormat = "%d/%b/%Y:%H:%M:%S";#apache datetime format "%d/%b/%Y:%H:%M:%S"    #IIS format "%Y-%b-%d %H:%M:%S"
+outputDateFormat = '%Y-%m-%d %H:%M:%S'
 columnCount = 10 #set to zero to have it dynamically identify the number of columns based on header row (first row). Note not all web servers log header rows
 boolPreprocess = False #preprocessing may be required. See if you get "Error on Row: " message and if so set to True.
 boolExpectDefaultFormat = True #added to improve accuracy of Common/Combined Log Format. Set to False for IIS logs
@@ -170,7 +171,7 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
         fP = io.open(strOutPath + ".IDS", "a", encoding=outputEncoding) #open file handle for logging IDS matches
     if boolphpids == True or boolOutputSuspicious == True or boolOutputInteresting == True:#open file handle for interesting log output
         fi = open(strOutPath + ".interesting","a", encoding=outputEncoding) #suspicious log entry output
-    csv.field_size_limit(2147483647)'increase threshold to avoid length limitation errors
+    csv.field_size_limit(2147483647) #increase threshold to avoid length limitation errors
     with open(strInputFpath, "rt", encoding=inputEncoding) as csvfile:
         with io.open(strOutPath , "a", encoding=outputEncoding) as f:
             queuedRows = []
@@ -258,7 +259,7 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                         if boolDateCoverted == False and saniColumn[0:1] == "[":# format date time
                             boolDateCoverted = True
                             logDateTime = time.strptime( saniColumn[1:], strdateFormat)
-                            saniColumn = time.strftime('%Y-%m-%dT%H:%M:%S', logDateTime)
+                            saniColumn = time.strftime(outputDateFormat, logDateTime)
 
 
                         if boolEscapeChar == True and len(row) > columnCount and boolSkipColumn == False and boolQuoteRemoved == True:  #escaped character and column mismatch
