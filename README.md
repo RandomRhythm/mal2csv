@@ -25,8 +25,8 @@ Options:
   -l, --loginteresting  True or False value if interesting deobfuscated
                         entries should be logged
 
-  -p, --phpids          True or False value if PHPIDS rule matches should be
-                        logged
+  -p, --phpids          True or False value to perform PHPIDS rule matching
+                        
 
   -r, --logrules        True or False value if PHPIDS rule matches should be
                         logged

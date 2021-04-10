@@ -54,7 +54,7 @@ def build_cli_parser():
     parser.add_option("-l", "--loginteresting", action="store_true", default=False, dest="boolOutputSuspicious",
                       help="True or False value if interesting deobfuscated entries should be logged")
     parser.add_option("-p", "--phpids", action="store_true", default=False, dest="boolphpids",
-                      help="True or False value if PHPIDS rule matches should be logged")
+                      help="True or False value if PHPIDS rule matching should be performed")
     parser.add_option("-r", "--logrules", action="store_true", default=False, dest="boolOutputIDS",
                       help="True or False value if PHPIDS rule matches should be logged")
     parser.add_option("-f", "--formatlogging", action="store_true", default=False, dest="boolOutputInteresting",
