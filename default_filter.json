@@ -274,7 +274,7 @@
       },
       {
         "id":"22",
-        "rule":"(?:=\\s*(?:top|this|window|content|self|frames|_content))|(?:\\\/\\s*[gimx]*\\s*[)}])|(?:[^\\s]\\s*=\\s*script)|(?:\\.\\s*constructor)|(?:default\\s+xml\\s+namespace\\s*=)|(?:\\\/\\s*\\+[^+]+\\s*\\+\\s*\\\/)",
+        "rule":"(?:=\\s*(?:top|this|window|content|self|frames|_content))|(?:[^\\s]\\s*=\\s*script)|(?:\\.\\s*constructor)|(?:default\\s+xml\\s+namespace\\s*=)|(?:\\\/\\s*\\+[^+]+\\s*\\+\\s*\\\/)",
         "description":"Detects advanced XSS probings via Script(), RexExp, constructors and XML namespaces",
         "tags":{
           "tag":[
