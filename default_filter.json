@@ -124,7 +124,7 @@
       },
       {
         "id":"11",
-        "rule":"(?:%c0%ae\\\/)|(?:(?:\\\/|\\\\)(home|conf|usr|etc|proc|opt|s?bin|local|dev|tmp|kern|[br]oot|sys|system|windows|winnt|program|%[a-z_-]{3,}%)(?:\\\/|\\\\))|(?:(?:\\\/|\\\\)inetpub|localstart\\.asp|boot\\.ini)",
+        "rule":"(?:%c0%ae\\\/)|(?:(?:\\\/|\\\\)inetpub|localstart\\.asp|boot\\.ini)",
         "description":"Detects specific directory and path traversal",
         "tags":{
           "tag":[
