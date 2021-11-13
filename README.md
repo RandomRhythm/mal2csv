@@ -41,6 +41,7 @@ Example:
 
 
 External references:
+
 [Formatting and Deobfuscating Web Logs](https://www.randomsecurityblog.com/2020/02/formatting-and-deobfuscating-web-logs.html)
 
 [Formatting and Deobfuscating Web Logs - Integrating Deobfuscation](https://www.randomsecurityblog.com/2020/02/formatting-and-deobfuscating-web-logs_15.html)
