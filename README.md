@@ -37,4 +37,10 @@ Options:
 
 Example:
 
-mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\outputfile
+                  mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\outputfile
+
+
+External references:
+[Formatting and Deobfuscating Web Logs](https://www.randomsecurityblog.com/2020/02/formatting-and-deobfuscating-web-logs.html)
+[Formatting and Deobfuscating Web Logs - Integrating Deobfuscation](https://www.randomsecurityblog.com/2020/02/formatting-and-deobfuscating-web-logs_15.html)
+[Formatting and Deobfuscating Web Logs - Detecting Suspicious Activity](https://www.randomsecurityblog.com/2020/03/formatting-and-deobfuscating-web-logs.html)
