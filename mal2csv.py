@@ -7,8 +7,8 @@
 #RemoteIP,RemoteLogName,RemoteUser,EventTime,TimeZone,Request,StatusCode,Size,Referrer,UserAgent
 
 import csv
-import io 
-import os 
+import io
+import os
 import re 
 import time
 import sys
@@ -38,6 +38,7 @@ boolOutputSuspicious = False #If deobfuscating entries then output suspicious en
 boolphpids = False #Run log entries against phpids rules
 boolOutputIDS = False #Output PHPIDS rule match information
 boolOutputUnformatted = False #This is only useful when debugging
+boolIIS = False #Use IIS settings (set boolExpectDefaultFormat = False and strdateFormat = "")
 #end config section
 boolSuspiciousLineFound = False #variable used to track when a line contains encoded data
 phpidSignatures = {} #phpids signatures
@@ -59,6 +60,8 @@ def build_cli_parser():
                       help="True or False value if PHPIDS rule matches should be logged")
     parser.add_option("-f", "--formatlogging", action="store_true", default=False, dest="boolOutputInteresting",
                       help="True or False value if suspicious formatting should be logged")
+    parser.add_option("-m", "--MicrosoftIIS", action="store_true", default=False, dest="boolIIS",
+                      help="True or False value if Microsoft IIS logs")
     return parser
 
 def phpIDS (strMatchCheck, idsFileHandle):
@@ -350,7 +353,11 @@ if opts.boolOutputInteresting:
     boolOutputInteresting = opts.boolOutputInteresting
 if opts.boolOutputIDS:
     boolOutputIDS = opts.boolOutputIDS
-
+if opts.boolOutputIDS:
+    boolIIS = opts.boolIIS
+if boolIIS == True:
+    boolExpectDefaultFormat = False
+    strdateFormat = ""
 
 if strInputFilePath == "":
     if os.path.isfile(strInputPath):#check if a file path was provided instead of a folder
