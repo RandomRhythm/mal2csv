@@ -69,6 +69,19 @@
           ]
         },
         "impact": "3"
+      },
+      {
+        "id": "85",
+        "rule": "(?:(\\$\\{\\S*j\\S*n\\S*d*\\S(i|\\u0131)\\S*:\\S*l\\S*d\\S*a\\S*p\\S*:\\S*\\/\\S*\\/))",
+        "description": "Detects possible log4j2 exploit",
+        "tags": {
+          "tag": [
+            "CVE-2021-44228",
+            "injection",
+            "log4j"
+          ]
+        },
+        "impact": "3"
       }
     ]
   }
