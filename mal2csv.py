@@ -136,6 +136,7 @@ def CheckRemainingColumns(row_Check, intCurrentLoc, boolNumeric):#check for spec
 
 def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
     global boolSuspiciousLineFound
+    boolIDSdetection = False
     if boolPreprocess == True:
         
         if not os.path.isfile(strInputFpath):
@@ -226,16 +227,16 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                         boolEscapeChar = False
 
                         if boolphpids == True and boolSuspiciousLineFound != True:
-                            boolSuspiciousLineFound = phpIDS(column, fP)
-                            
+                            boolIDSdetection = phpIDS(column, fP)
+                            boolSuspiciousLineFound  = boolIDSdetection
                         #saniColumn = str.replace(column, "'","") # remove quote chars
                         saniColumn = column
                         if boolDeobfuscate == True: #perform decoding
                             saniColumn = deobfuscateEncoding(saniColumn)
                             saniColumn = str.replace(saniColumn, quotecharacter,"").replace("\n", "").replace("\rz", "") #remove format characters
-                        if boolphpids == True and boolSuspiciousLineFound != True:
-                            boolSuspiciousLineFound = customIDS(saniColumn.lower(),fP)
-
+                        if boolphpids == True and boolIDSdetection != True:
+                            boolIDSdetection = customIDS(saniColumn.lower(),fP)
+                            boolSuspiciousLineFound = boolIDSdetection
                         if  'HTTP/' in saniColumn:
                             boolRequestEnding = True
                         
@@ -324,6 +325,7 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                     f.write(outputRow + "\n")
                     if boolSuspiciousLineFound == True:
                         boolSuspiciousLineFound = False
+                        boolIDSdetection = False
                         fi.write(outputRow + "\n")
     if os.path.isfile(strInputFilePath +".tmp"):
         os.remove(strInputFilePath +".tmp")     
