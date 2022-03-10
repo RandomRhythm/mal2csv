@@ -26,7 +26,7 @@ strLineBeginingRE = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5
 quotecharacter = '\"'
 strdateFormat = "%d/%b/%Y:%H:%M:%S";#apache datetime format "%d/%b/%Y:%H:%M:%S"    #IIS format "%Y-%b-%d %H:%M:%S"
 outputDateFormat = '%Y-%m-%d %H:%M:%S'
-columnCount = 10 #set to zero to have it dynamically identify the number of columns based on header row (first row). Note not all web servers log header rows
+columnCount = 0 #set to zero to have it dynamically identify the number of columns based on header row (first row). Note not all web servers log header rows
 boolPreprocess = False #preprocessing may be required. See if you get "Error on Row: " message and if so set to True.
 boolExpectDefaultFormat = True #added to improve accuracy of Common/Combined Log Format. Set to False for IIS logs
 #Output settings
@@ -38,11 +38,12 @@ boolOutputSuspicious = False #If deobfuscating entries then output suspicious en
 boolphpids = False #Run log entries against phpids rules
 boolOutputIDS = False #Output PHPIDS rule match information
 boolOutputUnformatted = False #This is only useful when debugging
-boolIIS = False #Use IIS settings (set boolExpectDefaultFormat = False and strdateFormat = "")
+boolIIS = True #Use IIS settings (set boolExpectDefaultFormat = False and strdateFormat = "")
 #end config section
 boolSuspiciousLineFound = False #variable used to track when a line contains encoded data
 phpidSignatures = {} #phpids signatures
 customSignatures = {} #IDS signatures for deobfuscated log entries
+boolHead = False
 
 def build_cli_parser():
     parser = OptionParser(usage="%prog [options]", description="Format malformed access logs to CSV")
@@ -134,8 +135,10 @@ def CheckRemainingColumns(row_Check, intCurrentLoc, boolNumeric):#check for spec
             boolSpecialFound = False
     return -1
 
-def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
+def fileProcess(strInputFpath, strFileName, strOutPath):
     global boolSuspiciousLineFound
+    global boolHead
+    global columnCount
     boolIDSdetection = False
     if boolPreprocess == True:
         
@@ -192,10 +195,9 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                             if re.match(strLineBeginingRE, testColumns):
                                 
                                 rowSlice = slice(intListCount -1, len(r_row))
-                                print (r_row[rowSlice])
                                 queuedRows = [r_row[rowSlice]]
                                 break
-                if '\n' in "".join(r_row): #handle newline in row 
+                if '\n' in "".join(r_row) and columnCount > 0: #handle newline in row 
                     if len(r_row) / columnCount >= 2:
                         intListCount = 0
                         for testColumns in r_row:
@@ -208,7 +210,7 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                                  
 
                 for row in queuedRows:
-                    if columnCount == 0:
+                    if columnCount == 0 and boolIIS == False:
                         columnCount = len(row)#dynamic row length
 
                     if "\\" in "".join(row) and boolOutputInteresting == True:
@@ -220,17 +222,34 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                     intWriteCount = 0
                     skippedColumns = 0
                     boolDateCoverted = False
+                    boolExcludeRow = False #IIS headers are dropped
                     boolRequestEnding = False # this was added to track the request column. Set to true once "HTTP/" is encountered. Example: HTTP/1.1"
+                    
                     for column in row:
                         intColumnCount += 1
                         boolQuoteRemoved = False
                         boolEscapeChar = False
+
 
                         if boolphpids == True and boolSuspiciousLineFound != True:
                             boolIDSdetection = phpIDS(column, fP)
                             boolSuspiciousLineFound  = boolIDSdetection
                         #saniColumn = str.replace(column, "'","") # remove quote chars
                         saniColumn = column
+                        if boolIIS == True and intColumnCount == 1 and "#Fields:" in saniColumn:
+                            if boolHead == False:
+                                saniColumn = ""
+                                boolSkipColumn = True
+                                if columnCount ==0: #if dynamic header identification
+                                    columnCount = len(row) -2 #dynamic row length
+                            else:
+                                boolExcludeRow = True
+                                break #skip header row
+                        if boolIIS == True and intColumnCount == 1 and ("#Software:" in saniColumn or "#Version:" in saniColumn or "#Date:" in saniColumn):
+                            boolExcludeRow = True
+                            break #drop IIS header rows
+
+                            
                         if boolDeobfuscate == True: #perform decoding
                             saniColumn = deobfuscateEncoding(saniColumn)
                             saniColumn = str.replace(saniColumn, quotecharacter,"").replace("\n", "").replace("\rz", "") #remove format characters
@@ -277,6 +296,9 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                                 boolSkipColumn = True
                         elif boolSkipColumn == True and (len(row) - intColumnCount - skippedColumns != columnCount - intColumnCount): #still more columns than what is expected so combine next column
                             skippedColumns +=1
+                            if boolHead == False and boolIIS == True and intColumnCount == 1: #IIS header row manipulation
+                                outputRow = "\"" #excluding #Fields: and replacing with a qoute to start our next field
+                                continue
                             if intCheckFirstUserInput == 0:
                                 intCheckFirstUserInput = CheckRemainingColumns(row, intColumnCount, True) # row, currentColumn, boolCheckNumeric
                             if  intCheckFirstUserInput >= intColumnCount:#check for special chars followed by number (In apache logs this is the first non system/user provided column that is followed by a status code)
@@ -285,6 +307,9 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                                 outputRow = outputRow + " " + saniColumn + '"' #Finish and close column
                                 boolSkipColumn = False
                                 intWriteCount += 1
+                            elif boolHead == False and boolIIS == True and intColumnCount == 2: #IIS header row manipulation continuation
+                                outputRow = outputRow + saniColumn #this is actually our first output value entry as we skipped #Fields:
+                                boolHead = True
                             else:
                                 outputRow = outputRow + " " + saniColumn #continue column and add separator char back
                         elif boolSkipColumn == True and len(row) - intColumnCount - skippedColumns == columnCount - intColumnCount: #New columns are just right
@@ -322,11 +347,12 @@ def fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
                                 fU.write(outputRow + "\n")
                     outputRow = appendQuote(outputRow) 
 
-                    f.write(outputRow + "\n")
-                    if boolSuspiciousLineFound == True:
-                        boolSuspiciousLineFound = False
-                        boolIDSdetection = False
-                        fi.write(outputRow + "\n")
+                    if boolExcludeRow == False:
+                        f.write(outputRow + "\n")
+                        if boolSuspiciousLineFound == True:
+                            boolSuspiciousLineFound = False
+                            boolIDSdetection = False
+                            fi.write(outputRow + "\n")
     if os.path.isfile(strInputFilePath +".tmp"):
         os.remove(strInputFilePath +".tmp")     
     if boolphpids == True and boolOutputIDS == True:
@@ -372,12 +398,12 @@ if os.path.isdir(strInputPath):
         if os.path.isdir(strInputPath):
             for subfile in os.listdir(os.path.join(strInputPath, file)):
                 print(os.path.join(os.path.join(strInputPath, file), subfile))
-                fileProcess(os.path.join(os.path.join(strInputPath, file), subfile), columnCount, subfile, strOutputPath)
+                fileProcess(os.path.join(os.path.join(strInputPath, file), subfile), subfile, strOutputPath)
         else:
             fileProcess(os.path.join(strInputPath, file), columnCount, file, strOutputPath)
 else:
     fileName = os.path.basename(strInputFilePath)
-    fileProcess(strInputFilePath, columnCount,fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
+    fileProcess(strInputFilePath, fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
 
 
 print("Completed!")
