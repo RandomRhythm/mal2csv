@@ -360,6 +360,7 @@ if opts.boolOutputIDS:
 if boolIIS == True:
     boolExpectDefaultFormat = False
     strdateFormat = ""
+    strLineBeginingRE = ""
 
 if strInputFilePath == "":
     if os.path.isfile(strInputPath):#check if a file path was provided instead of a folder
@@ -368,7 +369,12 @@ if strInputFilePath == "":
         
 if os.path.isdir(strInputPath):
     for file in os.listdir(strInputPath):
-        fileProcess(os.path.join(strInputPath, file), columnCount, file, strOutputPath)
+        if os.path.isdir(strInputPath):
+            for subfile in os.listdir(os.path.join(strInputPath, file)):
+                print(os.path.join(os.path.join(strInputPath, file), subfile))
+                fileProcess(os.path.join(os.path.join(strInputPath, file), subfile), columnCount, subfile, strOutputPath)
+        else:
+            fileProcess(os.path.join(strInputPath, file), columnCount, file, strOutputPath)
 else:
     fileName = os.path.basename(strInputFilePath)
     fileProcess(strInputFilePath, columnCount,fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
