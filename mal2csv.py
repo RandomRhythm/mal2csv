@@ -38,7 +38,7 @@ boolOutputSuspicious = False #If deobfuscating entries then output suspicious en
 boolphpids = False #Run log entries against phpids rules
 boolOutputIDS = False #Output PHPIDS rule match information
 boolOutputUnformatted = False #This is only useful when debugging
-boolIIS = True #Use IIS settings (set boolExpectDefaultFormat = False and strdateFormat = "")
+boolIIS = False #Use IIS settings (set boolExpectDefaultFormat = False and strdateFormat = "")
 #end config section
 boolSuspiciousLineFound = False #variable used to track when a line contains encoded data
 phpidSignatures = {} #phpids signatures
@@ -395,15 +395,16 @@ if strInputFilePath == "":
         
 if os.path.isdir(strInputPath):
     for file in os.listdir(strInputPath):
-        if os.path.isdir(strInputPath):
+        if os.path.isdir(os.path.join(strInputPath, file)):
             for subfile in os.listdir(os.path.join(strInputPath, file)):
                 print(os.path.join(os.path.join(strInputPath, file), subfile))
                 fileProcess(os.path.join(os.path.join(strInputPath, file), subfile), subfile, strOutputPath)
         else:
-            fileProcess(os.path.join(strInputPath, file), columnCount, file, strOutputPath)
+            fileProcess(os.path.join(strInputPath, file), file, strOutputPath)
 else:
     fileName = os.path.basename(strInputFilePath)
-    fileProcess(strInputFilePath, fileName, strOutputPath)#fileProcess(strInputFpath, columnCount, strFileName, strOutPath):
+    fileProcess(strInputFilePath, fileName, strOutputPath)
+
 
 
 print("Completed!")
