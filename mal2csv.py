@@ -381,7 +381,7 @@ if opts.boolOutputInteresting:
     boolOutputInteresting = opts.boolOutputInteresting
 if opts.boolOutputIDS:
     boolOutputIDS = opts.boolOutputIDS
-if opts.boolOutputIDS:
+if opts.boolIIS:
     boolIIS = opts.boolIIS
 if boolIIS == True:
     boolExpectDefaultFormat = False
