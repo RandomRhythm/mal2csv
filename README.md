@@ -33,8 +33,9 @@ Options:
 
   -f, --formatlogging   True or False value if suspicious formatting should be
                         logged
-
-
+                        
+  -m, --MicrosoftIIS    True or False value if target logs are IIS  
+<br /> 
 Example:
 
                   mal2csv.py -i c:\mal2csv\Web_Log_Deobfuscate\Example_Logs\access.log -o c:\processed_logs\outputfile
