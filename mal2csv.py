@@ -24,6 +24,7 @@ strOutputPath = "" #Folder path to output formated logs. Make sure the folder pa
 inputEncoding = "utf-8" #set to "" to use system default
 strLineBeginingRE = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" #regex to ensure each line starts with valid value. Set to "" to disable. default regex is for common log format and should be disabled or modfied for other formats
 quotecharacter = '\"'
+csv_quotechar = '\"'
 strdateFormat = "%d/%b/%Y:%H:%M:%S";#apache datetime format "%d/%b/%Y:%H:%M:%S"    #IIS format "%Y-%b-%d %H:%M:%S"
 outputDateFormat = '%Y-%m-%d %H:%M:%S'
 columnCount = 0 #set to zero to have it dynamically identify the number of columns based on header row (first row). Note not all web servers log header rows
@@ -182,7 +183,7 @@ def fileProcess(strInputFpath, strFileName, strOutPath):
     with open(strInputFpath, "rt", encoding=inputEncoding) as csvfile:
         with io.open(strOutPath , "a", encoding=outputEncoding) as f:
             queuedRows = []
-            reader = csv.reader(csvfile, delimiter=' ', quotechar='\"')
+            reader = csv.reader(csvfile, delimiter=' ', quotechar=csv_quotechar)
             for r_row in reader: #loop through each row of input
                 queuedRows = [r_row]
                 intCheckFirstUserInput = 0
@@ -387,6 +388,7 @@ if boolIIS == True:
     boolExpectDefaultFormat = False
     strdateFormat = ""
     strLineBeginingRE = ""
+    csv_quotechar = '\x07' #https://stackoverflow.com/questions/494054/how-can-i-disable-quoting-in-the-python-2-4-csv-reader
 
 if strInputFilePath == "":
     if os.path.isfile(strInputPath):#check if a file path was provided instead of a folder
