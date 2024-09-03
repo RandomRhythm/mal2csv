@@ -1,6 +1,9 @@
 # mal2csv
 ### Malformed Access Log to CSV - Convert Web Server Access Logs to CSV
 
+mal2csv is now OWASP Access Log Parser (OALP):
+https://github.com/OWASP/www-project-access-log-parser
+
 mal2csv was written to take web server access logs and convert them into CSV. The mal2csv python script can convert logs from popular web servers such as Apache, NGINX, IIS, or similar. A specific effort was made to convert logs in the common log format and the combined log format that may be malformed. The malformation can happen due to a number of reasons, including SQL injection (SQLi), cross-site scripting (XSS), or other web server attacks.
 
 The mal2csv script integrates Web_Log_Deobfuscate that deobfuscates encoding, such as that used in web server attacks, to humanly readable text. The mal2csv script can check log entries against the PHPIDS regex rules to identify known malicious requests. Log entries identified with formatting issues can also be logged for review as those entries may contain suspicious activity that you can review from a security perspective. 
